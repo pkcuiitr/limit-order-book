@@ -5,13 +5,16 @@ Last Modified: 10/6/2023
 
 This file contains the OrderBookSnapshot and OrderBookHistory classes
 that can be used to store the instantaneous state of the order-book
-and a series of states respectively.
+and a series of states respectively. Also contains the Order and Trade
+objects used to represet the activities in the market.
 """
 
 from enum import Enum
 from copy import deepcopy
 import bisect
 import pandas as pd
+
+from configuration import Config
 
 class OrderType(Enum):
     """Type of order"""
@@ -185,8 +188,7 @@ class OrderBookSnapshot:
 class OrderBookHistory:
     """Object containing the history of order-book states over time"""
 
-    def __init__(self, timestep, start_time, tick, nbb, nbo, book_depth):
-        self.timestep = timestep
+    def __init__(self, start_time, tick, nbb, nbo, book_depth):
         self.start_time = start_time
         self.end_time = start_time
         self.tick = tick
@@ -194,6 +196,17 @@ class OrderBookHistory:
         self.current_nbo = nbo
         self.book_depth = book_depth
         self.snapshots = []
+
+    @staticmethod
+    def from_config(config: Config) -> OrderBookHistory:
+        """Returns a new OrderBook based on configuration settings"""
+        return OrderBookHistory(
+            start_time=config.start_time,
+            tick = config.tick_size,
+            nbb=config.start_bid,
+            nbo=config.start_ask,
+            book_depth=config.max_depth
+        )
 
     def add_snapshot(self, snapshot: OrderBookSnapshot):
         """Updates order-book history with the given snapshot"""
