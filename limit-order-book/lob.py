@@ -143,7 +143,7 @@ class OrderBookSnapshot:
         # Get the parameters based on side of the order
         book_map = {
             'BUY':  ('bid_vol', 'nbb', self.tick),
-            'SELL': ('ask_vol', 'nbbo', -self.tick)
+            'SELL': ('ask_vol', 'nbo', -self.tick)
         }
         attr_vol, attr_nbbo, tick_adj = book_map[new_order.side.name]
         book_vol, nbbo = getattr(self, attr_vol), getattr(self, attr_nbbo)
@@ -197,16 +197,31 @@ class OrderBookHistory:
         self.book_depth = book_depth
         self.snapshots = []
 
-    @staticmethod
-    def from_config(config: Config) -> OrderBookHistory:
+    @classmethod
+    def from_config(cls, config: Config):
         """Returns a new OrderBook based on configuration settings"""
-        return OrderBookHistory(
+        orderbook = cls(
             start_time=config.start_time,
             tick = config.tick_size,
             nbb=config.start_bid,
             nbo=config.start_ask,
             book_depth=config.max_depth
         )
+        orderbook.initiate_orderbook(config)
+        return orderbook
+
+    def initiate_orderbook(self, config):
+        """Generates the first snapshot of the simulation"""
+        first_snapshot = OrderBookSnapshot(
+            time=config.start_time,
+            tick=config.tick_size,
+            nbb=config.start_bid,
+            nbo=config.start_ask,
+            bid_vol=[1]*config.max_depth,
+            ask_vol=[1]*config.max_depth,
+            book_depth=config.max_depth
+        )
+        self.add_snapshot(first_snapshot)
 
     def add_snapshot(self, snapshot: OrderBookSnapshot):
         """Updates order-book history with the given snapshot"""

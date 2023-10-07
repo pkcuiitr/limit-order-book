@@ -18,7 +18,7 @@ class Config:
         self.end_time = 60000
         self.open_window = 60
         self.close_window = 60
-        self.timestep_ms = 10
+        self.timestep_ms = 100
         self.tick_size = 0.01
         self.start_bid = 100.00
         self.start_ask = 100.01

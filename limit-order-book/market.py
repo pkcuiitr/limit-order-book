@@ -24,11 +24,12 @@ class Market:
         self.market_volume_rate = config.market_volume_rate
         self.limit_volume_rate = config.limit_volume_rate
         self.cancel_volume_rate = config.cancel_volume_rate
+        self.timestep_ms = config.timestep_ms
 
-    @staticmethod
-    def from_config(config: Config) -> Market:
+    @classmethod
+    def from_config(cls, config: Config):
         """Returns a new Market based on configuration settings"""
-        return Market(config)
+        return cls(config)
 
     @staticmethod
     def exp_dist(rate, min_val=None, max_val=None):
@@ -39,7 +40,7 @@ class Market:
     def get_next_order(self, snapshot: OrderBookSnapshot) -> Order:
         """Generates the next order to the order-book"""
         # Order side
-        side = random.choice(Side.list(), p=[0.5, 0.5])
+        side = random.choice([Side.BUY, Side.SELL], p=[0.5, 0.5])
 
         depth = snapshot.book_depth
         # Compute probabilities for limit orders at each level
@@ -68,7 +69,7 @@ class Market:
         prob = prob / total_rate
 
         # Order Type based on relative probabilities
-        idx = random.choice(range(len(prob)), p=prob)[0]
+        idx = random.choice(range(len(prob)), p=prob)
         order_type, level = ord_type[idx], lvl[idx]
 
                 # Order quantity based on order type
@@ -80,7 +81,7 @@ class Market:
         qty = Market.exp_dist(rate_mapping.get(order_type), min_val=0)
 
         # Order timestamp
-        time_till_next = -np.log(random.uniform(1e-3, 1)) / total_rate
+        time_till_next = int(-self.timestep_ms * np.log(random.uniform(1e-3, 1)) / total_rate)
         time = snapshot.timestamp + time_till_next
 
         return Order(time, order_type, side, level, qty)
