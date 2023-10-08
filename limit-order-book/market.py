@@ -1,7 +1,7 @@
 """
 Author: Danish Shah (sdanish1998@gmail.com)
 Date: 10/6/2023
-Last Modified: 10/7/2023
+Last Modified: 10/8/2023
 
 This file contains the objects that represent the market
 participants. They are used to place orders and trades
@@ -19,13 +19,13 @@ class Market:
     """Object representing the market as a whole"""
 
     def __init__(self, config):
+        self.timestep_ms = config.timestep_ms
         self.market_order_rate = config.market_order_rate
         self.limit_order_rate = config.limit_order_rate
         self.cancel_order_rate = config.cancel_order_rate
         self.market_volume_rate = config.market_volume_rate
         self.limit_volume_rate = config.limit_volume_rate
         self.cancel_volume_rate = config.cancel_volume_rate
-        self.timestep_ms = config.timestep_ms
         self.state = 0.0
         self.price_drift = 0.0
         self.mean_reversion = 0.01
@@ -72,7 +72,8 @@ class Market:
         lvl_cancel = np.arange(start=0, stop=depth).tolist()
 
         # Create OrderType and probability list for all levels
-        ord_type, prob, lvl = [OrderType.MARKET_ORDER], [self.market_order_rate], [0]
+        ord_type, prob = [OrderType.MARKET_ORDER], [self.market_order_rate]
+        lvl = [int(buy_prob * depth)] #TODO: can be improved to follow GBM
         ord_type.extend(ord_limit + ord_cancel)
         prob.extend(prob_limit + prob_cancel)
         lvl.extend(lvl_limit + lvl_cancel)

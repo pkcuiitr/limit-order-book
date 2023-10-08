@@ -1,7 +1,7 @@
 """
 Author: Danish Shah (sdanish1998@gmail.com)
 Date: 10/4/2023
-Last Modified: 10/6/2023
+Last Modified: 10/8/2023
 
 This file contains the OrderBookSnapshot and OrderBookHistory classes
 that can be used to store the instantaneous state of the order-book
@@ -139,6 +139,31 @@ class OrderBookSnapshot:
         setattr(self, attr_nnbbo, nnbbo + lvl * tick_adj)
         setattr(self, attr_pnbbo, nnbbo + (lvl-1) * tick_adj)
 
+    def process_sweep_order(self, new_order: Order):
+        """Updates an order-book after a market order"""
+
+        # Get the parameters based on side of the order
+        book_map = {
+            'BUY':  ('ask_vol', 'nbb', 'nbo', self.tick),
+            'SELL': ('bid_vol', 'nbo', 'nbb', -self.tick)
+        }
+        attr_vol, attr_pnbbo, attr_nnbbo, tick_adj = book_map[new_order.side.name]
+        pnbbo, nnbbo = getattr(self, attr_pnbbo), getattr(self, attr_nnbbo)
+        book_vol = getattr(self, attr_vol)
+
+        # Sweep the order-book till the given price level is reached
+        lvl, order_vol = 0, 0
+        while lvl <= new_order.level:
+            self.update_trade(nnbbo + lvl * tick_adj, book_vol[0], OrderType.MARKET_ORDER)
+            order_vol += book_vol[0]
+            book_vol.pop(0)
+            lvl += 1
+
+        # Update the order snapshot with new values
+        setattr(self, attr_vol, book_vol)
+        setattr(self, attr_nnbbo, nnbbo + lvl * tick_adj)
+        setattr(self, attr_pnbbo, nnbbo + (lvl-1) * tick_adj)
+
     def process_limit_order(self, new_order: Order):
         """Updates an order-book after a limit order"""
 
@@ -178,7 +203,8 @@ class OrderBookSnapshot:
             case OrderType.CANCEL_ORDER:
                 new_snapshot.process_cancel_order(new_order)
             case OrderType.MARKET_ORDER:
-                new_snapshot.process_market_order(new_order)
+                #new_snapshot.process_market_order(new_order)
+                new_snapshot.process_sweep_order(new_order)
             case OrderType.LIMIT_ORDER:
                 new_snapshot.process_limit_order(new_order)
 
