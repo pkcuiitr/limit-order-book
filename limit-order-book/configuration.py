@@ -25,7 +25,6 @@ class Config:
         self.max_depth = 5
         self.market_order_rate = 2.0
         self.limit_order_rate = 5.0
-        self.mean_deviation = 2.00
         self.market_volume_rate = 10
         self.limit_volume_rate = 10
         self.jump_rate = 1000.0
@@ -35,6 +34,9 @@ class Config:
         self.allow_market_orders = True
         self.allow_cancel_orders = True
         self.allow_mid_orders = False
+        self.price_drift = 0.0
+        self.mean_reversion = 0.01
+        self.mean_deviation = 0.2
         self.output_file = 'simulation_result.csv'
 
         # Load values from the yaml file

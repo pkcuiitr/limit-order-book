@@ -115,27 +115,29 @@ class OrderBookSnapshot:
 
         # Get the parameters based on side of the order
         book_map = {
-            'BUY':  ('ask_vol', 'nbo', self.tick),
-            'SELL': ('bid_vol', 'nbb', -self.tick)
+            'BUY':  ('ask_vol', 'nbb', 'nbo', self.tick),
+            'SELL': ('bid_vol', 'nbo', 'nbb', -self.tick)
         }
-        attr_vol, attr_nbbo, tick_adj = book_map[new_order.side.name]
-        book_vol, nbbo = getattr(self, attr_vol), getattr(self, attr_nbbo)
+        attr_vol, attr_pnbbo, attr_nnbbo, tick_adj = book_map[new_order.side.name]
+        pnbbo, nnbbo = getattr(self, attr_pnbbo), getattr(self, attr_nnbbo)
+        book_vol = getattr(self, attr_vol)
         order_vol = new_order.qty
 
         # Sweep the order-book till all the volume/book is executed
-        price = nbbo
+        lvl = 0
         while order_vol > 0 and book_vol:
             trade_volume = min(order_vol, book_vol[0])
-            self.update_trade(price, trade_volume, OrderType.MARKET_ORDER)
+            self.update_trade(nnbbo + lvl * tick_adj, trade_volume, OrderType.MARKET_ORDER)
             order_vol -= trade_volume
             book_vol[0] -= trade_volume
             if book_vol[0] == 0:
                 book_vol.pop(0)
-                price += tick_adj
+                lvl += 1
 
         # Update the order snapshot with new values
         setattr(self, attr_vol, book_vol)
-        setattr(self, attr_nbbo, price)
+        setattr(self, attr_nnbbo, nnbbo + lvl * tick_adj)
+        setattr(self, attr_pnbbo, pnbbo + max(lvl-1, 0) * tick_adj)
 
     def process_limit_order(self, new_order: Order):
         """Updates an order-book after a limit order"""
@@ -174,15 +176,15 @@ class OrderBookSnapshot:
         # Update the order-book levels based on order type
         match new_order.order_type:
             case OrderType.CANCEL_ORDER:
-                self.process_cancel_order(new_order)
+                new_snapshot.process_cancel_order(new_order)
             case OrderType.MARKET_ORDER:
-                self.process_market_order(new_order)
+                new_snapshot.process_market_order(new_order)
             case OrderType.LIMIT_ORDER:
-                self.process_limit_order(new_order)
+                new_snapshot.process_limit_order(new_order)
 
         # Add zero volume levels to maintain max depth
-        self.bid_vol += [0] * (self.book_depth - len(self.bid_vol))
-        self.ask_vol += [0] * (self.book_depth - len(self.ask_vol))
+        new_snapshot.bid_vol += [0] * (new_snapshot.book_depth - len(new_snapshot.bid_vol))
+        new_snapshot.ask_vol += [0] * (new_snapshot.book_depth - len(new_snapshot.ask_vol))
         return new_snapshot
 
 class OrderBookHistory:

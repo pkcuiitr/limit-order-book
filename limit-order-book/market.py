@@ -8,6 +8,7 @@ participants. They are used to place orders and trades
 in the order book.
 """
 
+import math
 import numpy as np
 from numpy import random
 
@@ -25,11 +26,20 @@ class Market:
         self.limit_volume_rate = config.limit_volume_rate
         self.cancel_volume_rate = config.cancel_volume_rate
         self.timestep_ms = config.timestep_ms
+        self.state = 0.0
+        self.price_drift = 0.0
+        self.mean_reversion = 0.01
+        self.mean_deviation = 0.2
 
     @classmethod
     def from_config(cls, config: Config):
         """Returns a new Market based on configuration settings"""
         return cls(config)
+
+    @staticmethod
+    def bound(x, min_val=0, max_val=1):
+        """Returns a bounded value using sigmoid function"""
+        return min_val + (max_val-min_val) / (1 + math.exp(-x))
 
     @staticmethod
     def exp_dist(rate, min_val=None, max_val=None):
@@ -39,8 +49,11 @@ class Market:
 
     def get_next_order(self, snapshot: OrderBookSnapshot) -> Order:
         """Generates the next order to the order-book"""
-        # Order side
-        side = random.choice([Side.BUY, Side.SELL], p=[0.5, 0.5])
+        # Order side based on current state of the market
+        self.state += (self.mean_reversion * (self.price_drift - self.state) +
+               random.normal(scale=self.mean_deviation))
+        buy_prob = Market.bound(self.state)
+        side = random.choice([Side.BUY, Side.SELL], p=[buy_prob, 1-buy_prob])
 
         depth = snapshot.book_depth
         # Compute probabilities for limit orders at each level
