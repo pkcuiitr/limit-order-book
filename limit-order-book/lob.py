@@ -137,7 +137,7 @@ class OrderBookSnapshot:
         # Update the order snapshot with new values
         setattr(self, attr_vol, book_vol)
         setattr(self, attr_nnbbo, nnbbo + lvl * tick_adj)
-        setattr(self, attr_pnbbo, pnbbo + max(lvl-1, 0) * tick_adj)
+        setattr(self, attr_pnbbo, nnbbo + (lvl-1) * tick_adj)
 
     def process_limit_order(self, new_order: Order):
         """Updates an order-book after a limit order"""

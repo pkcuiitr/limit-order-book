@@ -1,24 +1,36 @@
-start_time: 1696500000000    # opening time for simulation in epoch milliseconds.
-end_time: 1696500100000      # closing time for simulation in epoch milliseconds.
-open_window: 60              # length of opening auction window in seconds.
-close_window: 60             # length of closing auction window in seconds.
-timestep_ms: 10              # expected timestep between trades in milliseconds.
+# Essential parameters to run a simulation
+start_time: 0                # opening time for simulation in epoch milliseconds.
+end_time: 5000               # closing time for simulation in epoch milliseconds.
+timestep_ms: 100             # expected timestep between trades in milliseconds.
 tick_size: 0.01              # measure of the minimum upward or downward movement in the price.
 start_bid: 100.00            # initial best bid at the start of simulation.
 start_ask: 100.01            # initial best offer at the start of simulation.
 max_depth: 5                 # maximum depth of the limit-order-book on either side.
+
+# Parameters to handle market open and close
+open_window: 60              # TODO: length of opening auction window in seconds.
+close_window: 60             # TODO: length of closing auction window in seconds.
+
+# Parameters controlling market ordering behaviour
 market_order_rate: 2.0       # expected rate of market orders in a neutral market.
 limit_order_rate: 5.0        # expected rate of limit order in a neutral market.
-market_volume_rate: 10       # expected number of shares in a market order.
+market_volume_rate: 20       # expected number of shares in a market order.
 limit_volume_rate: 10        # expected number of shares in a limit order.
-jump_rate: 1000.0            # expected timesteps between price jumps.
 cancel_order_rate: 1.0       # expected rate of limit order cancellations in a neutral market.
-cancel_volume_rate: 3        # expected number of shares in a cancel order.
-price_method: 'mid'          # function used to compute the instantaneous price.
-allow_market_orders: yes     # flag to allow/disallow market type orders.
-allow_cancel_orders: yes     # flag to allow/disallow cancel type orders.
-allow_mid_orders: yes        # flag to allow/disallow mid-point type orders.
+cancel_volume_rate: 50       # expected number of shares in a cancel order.
+jump_rate: 0.1               # TODO: expected timesteps between price jumps.
+jump_volume_rate: 1000       # TODO: expected number of shares in a jump order.
+
+# Flags controlling market ordering behaviour
+allow_market_orders: yes     # TODO: flag to allow/disallow market type orders.
+allow_cancel_orders: yes     # TODO: flag to allow/disallow cancel type orders.
+allow_mid_orders: yes        # TODO: flag to allow/disallow mid-point type orders.
+
+# Parameters controlling state of the market
 price_drift: 0.0             # long term drift in share prices per time step.
-mean_reversion: 0.01         # measure of mean reversion of the share prices.
-mean_deviation: 0.2          # expected absolute deviation of price over a single trading day.
+mean_reversion: 0.02         # measure of mean reversion of the share prices.
+mean_deviation: 0.5          # expected absolute deviation of price over a single trading day.
+
+# Parameters used for generating simulation reports
+price_method: 'mid'          # TODO: function used to compute the instantaneous price.
 output_file: 'output.csv'    # output file to store the results of simulation.

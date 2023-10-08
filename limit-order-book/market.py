@@ -52,7 +52,7 @@ class Market:
         # Order side based on current state of the market
         self.state += (self.mean_reversion * (self.price_drift - self.state) +
                random.normal(scale=self.mean_deviation))
-        buy_prob = Market.bound(self.state)
+        buy_prob = Market.bound(self.state, min_val=0.15, max_val=0.85)
         side = random.choice([Side.BUY, Side.SELL], p=[buy_prob, 1-buy_prob])
 
         depth = snapshot.book_depth
