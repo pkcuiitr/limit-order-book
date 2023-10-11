@@ -193,6 +193,10 @@ class OrderBookSnapshot:
         setattr(self, attr_vol, book_vol)
         setattr(self, attr_nbbo, nbbo)
 
+    def process_midpoint_order(self, new_order: Order):
+        """TODO: Updates an order-book after a mid-point order"""
+        pass
+    
     def update(self, new_order):
         """Returns a new snapshot taking into account new orders and executions"""
         new_snapshot = deepcopy(self)
@@ -207,6 +211,8 @@ class OrderBookSnapshot:
                 new_snapshot.process_sweep_order(new_order)
             case OrderType.LIMIT_ORDER:
                 new_snapshot.process_limit_order(new_order)
+            case OrderType.MIDPOINT_ORDER:
+                new_snapshot.process_midpoint_order(new_order)
 
         # Add zero volume levels to maintain max depth
         new_snapshot.bid_vol += [0] * (new_snapshot.book_depth - len(new_snapshot.bid_vol))
